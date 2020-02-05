@@ -1,0 +1,12 @@
+includes: 
+  - 'layer:basic'
+  - 'layer:apt'
+  - 'layer:nginx'
+  - 'layer:lets-encrypt'
+repo: https://github.com/centauri-charmers/charm-gerrit
+options:
+  basic:
+    use_venv: True
+    include_system_packages: False
+  lets-encrypt:
+    service-name: nginx

@@ -1,0 +1,11 @@
+charm_name: gerrit
+dev_bundles:
+  - bionic
+gate_bundles:
+  - bionic
+smoke_bundles:
+  - bionic
+target_deploy_status: {}
+tests:
+  - tests.func/gerrit.GerritTests
+configure: {}

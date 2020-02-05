@@ -1,0 +1,35 @@
+[gerrit]
+    basePath = git
+    {% if ssl_enabled %}
+    canonicalWebUrl = https://{{ fqdn }}/
+    {% else %}
+    canonicalWebUrl = http://{{ fqdn }}/
+    {%- endif %}
+    serverId = 288e2bdc-636c-432e-8c9a-42037734ded7
+[container]
+    javaOptions = "-Dflogger.backend_factory=com.google.common.flogger.backend.log4j.Log4jBackendFactory#getInstance"
+    javaOptions = "-Dflogger.logging_context=com.google.gerrit.server.logging.LoggingContext#getInstance"
+    user = gerrit
+    javaHome = /usr/lib/jvm/java-11-openjdk-amd64
+[index]
+    type = lucene
+[auth]
+    type = OPENID
+[receive]
+    enableSignedPush = true
+[sendemail]
+    smtpServer = {{ smtp_server }}
+    smtpServerPort = {{ smtp_server_port }}
+    smtpEncryption = {{ smtp_encryption }}
+    smtpUser = {{ smtp_user }}
+    smtpPass = {{ smtp_password }}
+[sshd]
+    listenAddress = *:29418
+[httpd]
+    {% if ssl_enabled %}
+    listenUrl = proxy-https://127.0.0.1:8081/
+    {% else %}
+    listenUrl = proxy-http://127.0.0.1:8081/
+    {%- endif %}
+[cache]
+    directory = cache

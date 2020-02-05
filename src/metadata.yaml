@@ -1,0 +1,23 @@
+name: gerrit
+summary: Gerrit is a free, web-based team code collaboration tool
+maintainer: Centauri Charmers <charms@chris.centauri.solutions>
+description: |
+  Gerrit is a free, web-based team code collaboration tool. Software
+  developers in a team can review each other's modifications on their
+  source code using a Web browser and approve or reject those changes.
+  It integrates closely with Git, a distributed version control system.
+tags:
+  - application_development
+series:
+  - bionic
+  - eoan
+  - focal
+subordinate: false
+provides: {}
+requires: {}
+
+resources:
+  gerrit:
+    type: file
+    filename: gerrit.war
+    description: Gerrit WAR file
