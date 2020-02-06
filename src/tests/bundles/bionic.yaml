@@ -4,10 +4,6 @@ services:
   gerrit:
     num_units: 1
     series: bionic
-    charm: ../../../gerrit
+    charm: cs:~centauri-charmers/gerrit
     options: {}
-
-    resources:
-      gerrit: "/home/chris/code/centauri/charms/gerrit-3.1.2.war"
-
 relations: []

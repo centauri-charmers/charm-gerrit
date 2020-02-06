@@ -13,9 +13,12 @@
 # limitations under the License.
 
 import logging
+import os
 import socket
 import subprocess
 from charmhelpers.core.hookenv import resource_get
+from charmhelpers.core.host import mkdir
+from urllib.request import urlopen
 
 
 def gerrit_war():
@@ -23,7 +26,24 @@ def gerrit_war():
 
     :returns: path to a war file or None
     :rtype: Union[str, None]"""
-    return resource_get('gerrit')
+    res = resource_get('gerrit')
+    if res:
+        return res
+    dest_dir = os.path.join(os.environ.get('CHARM_DIR'), 'fetched')
+    if not os.path.exists(dest_dir):
+        mkdir(dest_dir, perms=0o755)
+    dld_file = os.path.join(dest_dir, "gerrit-3.1.2.war")
+    response = urlopen(
+        "https://gerrit-releases.storage.googleapis.com/gerrit-3.1.2.war")
+    try:
+        with open(dld_file, 'wb') as dest_file:
+            dest_file.write(response.read())
+    except Exception as e:
+        if os.path.isfile(dld_file):
+            os.unlink(dld_file)
+        logging.warn("Error downloading gerrit: {}".format(e))
+        return None
+    return dld_file
 
 
 def install(war, location):

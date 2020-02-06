@@ -7,5 +7,5 @@ smoke_bundles:
   - bionic
 target_deploy_status: {}
 tests:
-  - tests.func/gerrit.GerritTests
+  - tests.func.gerrit.GerritTests
 configure: {}

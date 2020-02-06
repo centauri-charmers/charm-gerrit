@@ -32,8 +32,10 @@ class TestGerritCharm(Helper):
 
     @mock.patch.object(gerrit, 'resource_get')
     def test_gerrit_war(self, resource_get):
-        gerrit.gerrit_war()
+        resource_get.return_value = "a"
+        res = gerrit.gerrit_war()
         resource_get.assert_called_once_with('gerrit')
+        self.assertEqual(res, "a")
 
     @mock.patch.object(gerrit.subprocess, 'check_call')
     def test_gerrit_install(self, check_call):
