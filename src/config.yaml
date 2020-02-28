@@ -15,3 +15,23 @@ options:
     default:
     type: string
     description: "Contact email for Let's Encrypt"
+  smtp-email:
+    default:
+    type: string
+    description: SMTP from address for Gerrit
+  smtp-username:
+    default:
+    type: string
+    description: SMTP username for Gerrit
+  smtp-password:
+    default:
+    type: string
+    description: SMTP password for Gerrit
+  smtp-host:
+    default:
+    type: string
+    description: SMTP host for Gerrit
+  smtp-port:
+    default: 465
+    type: int
+    description: SMTP port for Gerrit

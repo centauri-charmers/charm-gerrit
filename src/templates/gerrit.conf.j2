@@ -1,9 +1,9 @@
 [gerrit]
     basePath = git
     {% if ssl_enabled %}
-    canonicalWebUrl = https://{{ fqdn }}/
+    canonicalWebUrl = https://{{ fqdn }}
     {% else %}
-    canonicalWebUrl = http://{{ fqdn }}/
+    canonicalWebUrl = http://{{ fqdn }}
     {%- endif %}
     serverId = 288e2bdc-636c-432e-8c9a-42037734ded7
 [container]
@@ -17,12 +17,14 @@
     type = OPENID
 [receive]
     enableSignedPush = true
+{% if smtp_server and smtp_server_port and smtp_user and smtp_password %}
 [sendemail]
     smtpServer = {{ smtp_server }}
     smtpServerPort = {{ smtp_server_port }}
     smtpEncryption = {{ smtp_encryption }}
     smtpUser = {{ smtp_user }}
     smtpPass = {{ smtp_password }}
+{%- endif %}
 [sshd]
     listenAddress = *:29418
 [httpd]
@@ -33,3 +35,6 @@
     {%- endif %}
 [cache]
     directory = cache
+
+[user]
+    email = {{ smtp_from }}

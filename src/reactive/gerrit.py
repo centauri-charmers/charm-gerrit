@@ -46,7 +46,6 @@ def create_gerrit_directory():
     'directory.gerrit.created')
 @reactive.when_not('gerrit.config.ready')
 def setup_gerrit_config():
-    gerrit_dir = hookenv.config('gerrit-directory')
     ch_core.host.mkdir(
         "{}/etc".format(gerrit_dir),
         owner='gerrit', group='gerrit',
@@ -56,25 +55,8 @@ def setup_gerrit_config():
     if fqdn is None:
         ssl_enabled = False
         fqdn = gerrit.get_fqdn()
-    context = {
-        "fqdn": hookenv.config('fqdn'),
-        'ssl_enabled': ssl_enabled,
-        "smtp_server": "localhost",
-        "smtp_server_port": "25",
-        "smtp_encryption": "TLS",
-        "smtp_user": "gerrit",
-        "smtp_password": "pass",
-    }
-    ch_core.templating.render(
-        'gerrit.conf.j2',
-        context=context,
-        target="{}/etc/gerrit.config".format(gerrit_dir),
-        owner='gerrit',
-        group='gerrit',
-        perms=0o650,
-    )
+    gerrit.render_config(fqdn, ssl_enabled)
     reactive.set_flag('gerrit.config.ready')
-
 
 @reactive.when(
     'apt.installed.openjdk-11-jre-headless',
@@ -124,12 +106,17 @@ def configure_nginx_https():
     live = layer.lets_encrypt.live()
     layer.nginx.configure_site('gerrit', 'nginx.conf',
                                key_path=live['privkey'],
-                               crt_path=live['fullchain'],
+                               cert_path=live['fullchain'],
                                fqdn=fqdn, ssl_enabled=True)
-    ch_core.host.service_restart('nginx')
+
+    gerrit.render_config(fqdn, ssl_enabled=True)
+    if reactive.helpers.any_file_changed(['/etc/nginx/sites-available/gerrit']):
+        reactive.set_flag('nginx.reload')
     hookenv.status_set('active', 'Unit is ready: https://%s' % fqdn)
     hookenv.open_port(80)
     hookenv.open_port(443)
+    if reactive.helpers.any_file_changed([gerrit.gerrit_config_path()]):
+        reactive.set_flag('gerrit.restart')
 
 
 @reactive.when('nginx.available')
@@ -139,6 +126,24 @@ def configure_nginx_http():
     fqdn = gerrit.get_fqdn()
     layer.nginx.configure_site('gerrit', 'nginx.conf',
                                fqdn=fqdn, ssl_enabled=False)
-    ch_core.host.service_restart('nginx')
+    gerrit.render_config(fqdn, ssl_enabled=False)
+    if reactive.helpers.any_file_changed(['/etc/nginx/sites-available/gerrit']):
+        reactive.set_flag('nginx.reload')
     hookenv.status_set('active', 'Unit is ready: http://%s' % fqdn)
     hookenv.open_port(80)
+    if reactive.helpers.any_file_changed([gerrit.gerrit_config_path()]):
+        reactive.set_flag('gerrit.restart')
+
+
+@reactive.when('gerrit.restart')
+def restart_gerrit():
+    ch_core.host.service_restart('gerrit')
+    hookenv.open_port(29418)
+    reactive.clear_flag('gerrit.restart')
+
+
+@reactive.when('nginx.restart')
+def restart_nginx():
+    ch_core.host.service_reload('nginx')
+    hookenv.open_port(29418)
+    reactive.clear_flag('nginx.restart')

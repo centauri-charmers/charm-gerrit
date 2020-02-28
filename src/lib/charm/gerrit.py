@@ -16,6 +16,8 @@ import logging
 import os
 import socket
 import subprocess
+from charmhelpers import core as ch_core
+from charmhelpers.core import hookenv
 from charmhelpers.core.hookenv import resource_get
 from charmhelpers.core.host import mkdir
 from urllib.request import urlopen
@@ -47,7 +49,7 @@ def gerrit_war():
 
 
 def install(war, location):
-    """Install gerrit into the configured location.
+    """Install gerrit into thehookenv.configured location.
 
     :param war: The location of the war file for Gerrit
     :type war: str
@@ -62,6 +64,36 @@ def install(war, location):
         "--install-all-plugins",
         "--no-auto-start"])
     logging.debug(res)
+
+
+
+def render_config(fqdn, ssl_enabled=False):
+    context = {
+        "fqdn": hookenv.config('fqdn') or get_fqdn(),
+        'ssl_enabled': ssl_enabled,
+        "smtp_from":hookenv.config("smtp_from"),
+        "smtp_server":hookenv.config('smtp_host'),
+        "smtp_server_port":hookenv.config('smtp_port'),
+        "smtp_encryption": "TLS",
+        "smtp_user":hookenv.config('smtp_user'),
+        "smtp_password":hookenv.config('smtp_pass'),
+    }
+    return ch_core.templating.render(
+        'gerrit.conf.j2',
+        context=context,
+        target=gerrit_config_path(),
+        owner='gerrit',
+        group='gerrit',
+        perms=0o650,
+    )
+
+
+def gerrit_directory():
+    return hookenv.config('gerrit-directory')
+
+
+def gerrit_config_path():
+    return "{}/etc/gerrit.config".format(gerrit_directory())
 
 
 def get_fqdn(name=None):
@@ -79,7 +111,7 @@ def get_fqdn(name=None):
     """
     name = name or socket.gethostname()
     fqdn = ''
-
+    _fqdn = ''
     try:
         addrs = socket.getaddrinfo(
             name, None, 0, socket.SOCK_DGRAM, 0, socket.AI_CANONNAME)
@@ -90,5 +122,7 @@ def get_fqdn(name=None):
             if addr[3]:
                 if '.' in addr[3]:
                     fqdn = addr[3]
-                break
-    return fqdn
+                    break
+                else:
+                    _fqdn = addr[3]
+    return fqdn or _fqdn
