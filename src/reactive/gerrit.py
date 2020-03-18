@@ -47,7 +47,7 @@ def create_gerrit_directory():
 @reactive.when_not('gerrit.config.ready')
 def setup_gerrit_config():
     ch_core.host.mkdir(
-        "{}/etc".format(gerrit_dir),
+        "{}/etc".format(hookenv.config('gerrit-directory')),
         owner='gerrit', group='gerrit',
         perms=0o750,)
     ssl_enabled = True
