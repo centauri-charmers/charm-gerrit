@@ -1,0 +1,4 @@
+[gerrit]
+host=gerrit.centauri.solutions
+port=29418
+project=centauri-charmers/charm-gerrit
