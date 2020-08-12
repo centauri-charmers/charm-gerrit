@@ -3,10 +3,6 @@ options:
     default: False
     type: boolean
     description: Enable debug logging
-  gerrit-directory:
-    default: "/opt/gerrit"
-    type: string
-    description: Location for the Gerrit installation
   fqdn:
     default:
     type: string

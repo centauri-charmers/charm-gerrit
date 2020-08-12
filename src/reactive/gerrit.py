@@ -11,6 +11,9 @@ import charm.gerrit as gerrit
 from charms import layer
 
 
+GERRIT_DIRECTORY = "/opt/gerrit"
+
+
 @reactive.when_not('apt.installed.openjdk-11-jre-headless')
 def install_jre():
     charms.apt.queue_install(['openjdk-11-jre-headless'])
@@ -34,7 +37,7 @@ def create_gerrit_user():
 @reactive.when('user.gerrit.created')
 def create_gerrit_directory():
     ch_core.host.mkdir(
-        hookenv.config('gerrit-directory'),
+        GERRIT_DIRECTORY,
         owner='gerrit',
         group='gerrit',
         perms=0o750,
@@ -46,9 +49,8 @@ def create_gerrit_directory():
     'directory.gerrit.created')
 @reactive.when_not('gerrit.config.ready')
 def setup_gerrit_config():
-    gerrit_dir = hookenv.config('gerrit-directory')
     ch_core.host.mkdir(
-        "{}/etc".format(gerrit_dir),
+        "{}/etc".format(GERRIT_DIRECTORY),
         owner='gerrit', group='gerrit',
         perms=0o750,)
     ssl_enabled = True
@@ -68,8 +70,7 @@ def setup_gerrit_config():
     ch_core.templating.render(
         'gerrit.conf.j2',
         context=context,
-        target="{}/etc/gerrit.config".format(gerrit_dir),
-        owner='gerrit',
+        target="{}/etc/gerrit.config".format(GERRIT_DIRECTORY),
         group='gerrit',
         perms=0o650,
     )
@@ -83,8 +84,7 @@ def setup_gerrit_config():
 def install_gerrit():
     gerrit_war = gerrit.gerrit_war()
     if gerrit_war:
-        location = hookenv.config('gerrit-directory')
-        gerrit.install(gerrit_war, location)
+        gerrit.install(gerrit_war, GERRIT_DIRECTORY)
         reactive.set_flag('charm.gerrit.installed')
     else:
         hookenv.log(
