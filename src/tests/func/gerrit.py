@@ -20,7 +20,7 @@ import zaza.charm_lifecycle.utils as lifecycle_utils
 import zaza.model as model
 
 
-class GerritBaseTests(unittest.TestCase):
+class TestBase(unittest.TestCase):
 
     run_resource_cleanup = False
 
@@ -61,7 +61,7 @@ class GerritBaseTests(unittest.TestCase):
         logging.debug('Leader unit is {}'.format(cls.lead_unit))
 
 
-class GerritTests(GerritBaseTests):
+class GerritTests(TestBase):
     """Encapsulate testing of Gerrit."""
 
     def test_gerrit_is_listening(self):
