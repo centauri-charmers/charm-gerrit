@@ -19,7 +19,7 @@ def fqdn():
     if fqdn is None:
         # ssl_enabled = False
         # fqdn = gerrit.get_fqdn()
-        return hookenv.config('listen_address', hookenv.unit_public_ip())
+        return hookenv.config().get('listen_address', hookenv.unit_public_ip())
     return fqdn
 
 
