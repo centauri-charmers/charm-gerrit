@@ -14,6 +14,15 @@ from charms import layer
 GERRIT_DIRECTORY = "/opt/gerrit"
 
 
+def fqdn():
+    fqdn = hookenv.config('fqdn')
+    if fqdn is None:
+        # ssl_enabled = False
+        # fqdn = gerrit.get_fqdn()
+        return hookenv.config('listen_address', hookenv.unit_public_ip())
+    return fqdn
+
+
 @reactive.when_not('apt.installed.openjdk-11-jre-headless')
 def install_jre():
     charms.apt.queue_install(['openjdk-11-jre-headless'])
@@ -53,13 +62,9 @@ def setup_gerrit_config():
         "{}/etc".format(GERRIT_DIRECTORY),
         owner='gerrit', group='gerrit',
         perms=0o750,)
-    ssl_enabled = True
-    fqdn = hookenv.config('fqdn')
-    if fqdn is None:
-        ssl_enabled = False
-        fqdn = gerrit.get_fqdn()
+    ssl_enabled = hookenv.config('fqdn') is not None
     context = {
-        "fqdn": hookenv.config('fqdn'),
+        "fqdn": fqdn(),
         'ssl_enabled': ssl_enabled,
         "smtp_server": "localhost",
         "smtp_server_port": "25",
@@ -120,14 +125,13 @@ def enable_and_start_gerrit():
 @reactive.when('nginx.available', 'lets-encrypt.registered')
 def configure_nginx_https():
     hookenv.status_set('maintenance', 'Configuring website')
-    fqdn = hookenv.config().get('fqdn')
     live = layer.lets_encrypt.live()
     layer.nginx.configure_site('gerrit', 'nginx.conf',
                                key_path=live['privkey'],
                                crt_path=live['fullchain'],
-                               fqdn=fqdn, ssl_enabled=True)
+                               fqdn=fqdn(), ssl_enabled=True)
     ch_core.host.service_restart('nginx')
-    hookenv.status_set('active', 'Unit is ready: https://%s' % fqdn)
+    hookenv.status_set('active', 'Unit is ready: https://%s' % fqdn())
     hookenv.open_port(80)
     hookenv.open_port(443)
 
@@ -136,9 +140,8 @@ def configure_nginx_https():
 @reactive.when_not('lets-encrypt.registered')
 def configure_nginx_http():
     hookenv.status_set('maintenance', 'Configuring website')
-    fqdn = gerrit.get_fqdn()
     layer.nginx.configure_site('gerrit', 'nginx.conf',
-                               fqdn=fqdn, ssl_enabled=False)
+                               fqdn=fqdn(), ssl_enabled=False)
     ch_core.host.service_restart('nginx')
-    hookenv.status_set('active', 'Unit is ready: http://%s' % fqdn)
+    hookenv.status_set('active', 'Unit is ready: http://%s' % fqdn())
     hookenv.open_port(80)

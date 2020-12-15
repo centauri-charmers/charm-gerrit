@@ -7,6 +7,11 @@ options:
     default:
     type: string
     description: "Fully-Qualified Domain Name of server to register"
+  listen_address:
+    default:
+    type: string
+    description: |
+      Override published listen address, for example with a floating IP
   contact-email:
     default:
     type: string
