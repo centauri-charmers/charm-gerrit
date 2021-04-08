@@ -54,6 +54,12 @@ def create_gerrit_directory():
     reactive.set_flag('directory.gerrit.created')
 
 
+@reactive.when_any('config.fqdn.changed',
+                   'config.listen_address.changed')
+def reset_gerrit_ready():
+    reactive.clear_flag('gerrit.config.ready')
+
+
 @reactive.when(
     'directory.gerrit.created')
 @reactive.when_not('gerrit.config.ready')
